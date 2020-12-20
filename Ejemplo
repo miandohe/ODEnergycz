@@ -1,0 +1,32 @@
+<device uid="xx00xx00xx00" version="1.0.0_WM">
+<accumulated>
+<boottime>0</boottime>
+<timestamp>8621</timestamp>
+<active_L3>0</active_L3>
+<active_L2>0</active_L2>
+<active_L1>2012</active_L1>
+<reactive_L3>0</reactive_L3>
+<reactive_L2>0</reactive_L2>
+<reactive_L1>-75</reactive_L1>
+</accumulated>
+<instant>
+<voltage_L3>0</voltage_L3>
+<voltage_L2>0</voltage_L2>
+<voltage_L1>235</voltage_L1>
+<current_L3>0</current_L3>
+<current_L2>0</current_L2>
+<current_L1>910</current_L1>
+<current_N>0</current_N>
+<active_L3>0</active_L3>
+<active_L2>0</active_L2>
+<active_L1>194</active_L1>
+<reactive_L3>0</reactive_L3>
+<reactive_L2>0</reactive_L2>
+<reactive_L1>-94</reactive_L1>
+</instant>
+</device>
+
+
+
+--Estos son los datos que muestra mi ODEnergy cuando consultas la IP http://192.168.1.34/data.xml
+Se podrian de alguna manera implementar en Domoticz??
