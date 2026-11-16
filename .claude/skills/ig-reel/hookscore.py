@@ -35,15 +35,18 @@ import json
 import re
 import statistics
 import sys
+import unicodedata
 
-WORD_RE = re.compile(r"[A-Za-z0-9$%'’-]+")
+WORD_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ0-9$€%'’-]+")
 NUMBER_RE = re.compile(
-    r"\$\s?\d[\d,]*(?:\.\d+)?"                       # money, whole
+    r"[$€]\s?\d[\d,.]*"                              # money, whole
+    r"|\b\d[\d.,]*\s?(?:€|euros?\b|kwh\b|kw\b|horas?\b|min(?:utos)?\b"
+    r"|d[ií]as?\b|semanas?\b|mes(?:es)?\b|a[ñn]os?\b|veces\b)"  # Spanish units
     r"|\b\d[\d,]*(?:\.\d+)?\s?"                      # a figure, with or
     r"(?:%|k\b|x\b|hrs?\b|hours?\b|mins?\b|minutes?\b"  # without a unit
     r"|days?\b|weeks?\b|months?\b|years?\b)?",
     re.IGNORECASE)
-PROPER_RE = re.compile(r"(?<!^)\b[A-Z][a-z]{2,}\b")
+PROPER_RE = re.compile(r"(?<!^)\b[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]{2,}\b")
 HASHTAG_RE = re.compile(r"(?:^|\s)#\w+")
 EMOJI_RE = re.compile(r"[\U0001F300-\U0001FAFF☀-➿]")
 
@@ -62,6 +65,20 @@ MONEY_WORDS = {
     "millionaire", "billionaire", "revenue", "profit", "salary", "rent",
 }
 
+# Spanish. Lookups go through norm(), which drops accents, so every Spanish
+# entry below is written without them ("ano" also covers "año").
+SPOKEN_NUMBERS |= {
+    "cero", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+    "diez", "once", "doce", "quince", "veinte", "treinta", "cuarenta",
+    "cincuenta", "sesenta", "setenta", "ochenta", "noventa", "cien", "ciento",
+    "cientos", "doscientos", "trescientos", "quinientos", "mil", "millon",
+    "millones", "docena", "mitad", "medio", "doble", "triple",
+}
+MONEY_WORDS |= {
+    "euro", "euros", "pavos", "porciento", "centimos", "sueldo", "alquiler", "beneficio",
+    "beneficios", "ingresos", "precio", "kwh", "kw",
+}
+
 # Words that put something on the line. A hook with none of these is a
 # statement; a hook with one is a reason to keep watching.
 STAKES = {
@@ -76,6 +93,18 @@ STAKES = {
     "before", "until", "instead", "but", "except", "unless", "problem",
     "risk", "danger", "warning", "regret", "wish", "should", "shouldn't",
     "still", "already", "only", "without", "versus", "vs", "actually",
+    # Spanish
+    "deja", "dejad", "dejen", "nunca", "jamas", "nadie", "nada",
+    "ningun", "ninguno", "ninguna", "error", "errores", "fallo", "falle",
+    "mal", "perdi", "perdiste", "pierdes", "pierde", "perder", "perdiendo",
+    "cuesta", "costo", "costar", "pagas", "pagando", "pague", "pagaste",
+    "de mas", "gratis", "ahorre", "ahorras", "despedido", "borra", "borre",
+    "elimina", "sustituyo", "reemplazo", "corta", "recorta", "peor", "odio",
+    "estafa", "timo", "mentira", "mienten", "verdad", "secreto", "oculto",
+    "escondido", "antes", "hasta", "en vez", "pero", "excepto", "salvo",
+    "problema", "riesgo", "peligro", "ojo", "cuidado", "aviso", "multa",
+    "arrepiento", "deberias", "todavia", "aun", "ya", "solo", "sin",
+    "contra", "realmente", "tirando", "tiras", "regalando",
 }
 
 # Openers that spend the first second saying nothing.
@@ -86,6 +115,12 @@ WEAK_OPENERS = [
     "have you", "did you", "do you", "are you", "in this", "in today",
     "the thing", "a lot", "there is", "there are", "this is", "it is",
     "as a", "when it", "if you've", "you know",
+    # Spanish
+    "bueno", "pues", "vale", "hola", "holi", "buenas", "chicos", "chicas",
+    "gente", "hoy", "basicamente", "sinceramente", "la verdad", "mira",
+    "mirad", "oye", "eh", "a ver", "solo", "dejame", "quiero", "queria",
+    "uno de", "una de", "sabias", "sabes", "has", "alguna vez", "en este",
+    "en el video", "lo que", "hay", "esto es", "es que", "como", "cuando",
 ]
 
 # Imperatives that earn the front position.
@@ -93,9 +128,22 @@ IMPERATIVES = {
     "stop", "steal", "copy", "delete", "try", "watch", "read", "save",
     "use", "build", "make", "write", "send", "take", "start", "quit",
     "never", "always", "don't", "dont", "do", "put", "run", "check",
+    # Spanish (tu and usted forms)
+    "deja", "deje", "pare", "roba", "copia", "borra", "prueba",
+    "pruebe", "mira", "mire", "lee", "guarda", "guardate", "usa", "use",
+    "haz", "haga", "escribe", "manda", "envia", "coge", "saca", "busca",
+    "empieza", "nunca", "siempre", "no", "pon", "revisa", "revise",
+    "comprueba", "compara", "llama", "pide", "apaga", "baja", "sube",
+    "cambia", "olvida", "ojo", "fijate", "apunta",
 }
 
 DEALBREAKERS = [
+    (re.compile(r"(?i)^\s*(?:no hagas scroll|deja de hacer scroll|para de hacer scroll)"),
+     "Abre con \"deja de hacer scroll\". Pedir atención demuestra que no te la has ganado."),
+    (re.compile(r"(?i)\b(?:en (?:este|el (?:vídeo|video) de hoy|el reel de hoy)|en este (?:vídeo|video|reel)|te voy a (?:enseñar|ensenar|contar|mostrar))\b"),
+     "Preámbulo de vídeo. Bórralo y abre con el resultado."),
+    (re.compile(r"(?i)^\s*(?:hola|holi|buenas|qué tal|que tal|bienvenid[oa]s?)\b"),
+     "Saludo. Nadie entra al feed para que le saluden."),
     (re.compile(r"(?i)^\s*(?:stop scrolling|don'?t scroll)"),
      "Opens with \"stop scrolling\". Asking for attention proves you have not earned it."),
     (re.compile(r"(?i)\b(?:in (?:this|today'?s) (?:video|reel)|i'?m going to show you|i'?ll show you how)\b"),
@@ -113,9 +161,23 @@ def clamp(n):
     return max(0.0, min(100.0, n))
 
 
+def norm(token):
+    """Lower-case, strip quotes and accents so "Año" and "ano" match."""
+    token = token.lower().strip("'’")
+    return "".join(c for c in unicodedata.normalize("NFD", token)
+                   if unicodedata.category(c) != "Mn")
+
+
 def words(text):
     # "$18,000" is one word when it is spoken, so it is one word here too.
-    return WORD_RE.findall(re.sub(r"(?<=\d),(?=\d)", "", text))
+    # Spanish uses "5,75" as a decimal, which collapses the same way.
+    return WORD_RE.findall(re.sub(r"(?<=\d)[,.](?=\d)", "", text))
+
+
+def tokens(text):
+    """Normalised words, plus two-word phrases like "de mas" and "en vez"."""
+    w = [norm(x) for x in words(text)]
+    return w, w + [" ".join(p) for p in zip(w, w[1:])]
 
 
 def check_length(text):
@@ -139,7 +201,7 @@ def check_specificity(text):
     """One concrete thing beats three abstract ones."""
     nums = [n.strip() for n in NUMBER_RE.findall(text) if n.strip()]
     propers = set(PROPER_RE.findall(text))
-    low = [w.lower().strip("'’") for w in words(text)]
+    low, _ = tokens(text)
     spoken = [w for w in low if w in SPOKEN_NUMBERS or w in MONEY_WORDS]
     hits = len(nums) + len(propers) + len(spoken)
     score = 15.0 if hits == 0 else clamp(45 + hits * 30)
@@ -150,10 +212,10 @@ def check_specificity(text):
 
 def check_stakes(text):
     """Tension, cost, negation. Something the viewer might lose."""
-    w = [x.lower().strip("'’") for x in words(text)]
-    hits = [x for x in w if x in STAKES]
+    _, grams = tokens(text)
+    hits = [x for x in grams if x in STAKES]
     markers = sorted(set(hits))
-    if re.search(r"\$\s?\d", text):
+    if re.search(r"[$€]\s?\d|\d\s?(?:€|euros?\b)", text, re.IGNORECASE):
         markers.append("a price")
     n = len(markers)
     score = {0: 20.0, 1: 70.0}.get(n, 100.0)
@@ -167,7 +229,7 @@ def check_frontload(text):
     w = words(text)
     if not w:
         return 0.0, "empty"
-    low = [x.lower().strip("'’") for x in w]
+    low = [norm(x) for x in w]
     opener = " ".join(low[:2])
     penalty = 0
     hit_opener = None
@@ -200,14 +262,34 @@ def check_frontload(text):
 def check_address(text):
     """Aimed at one viewer, or floating in the air."""
     low = text.lower()
-    w = [x.lower().strip("'’") for x in words(text)]
+    w, _ = tokens(text)
     if re.search(r"\b(you|your|you're|youre|yourself)\b", low):
+        return 100.0, "speaks to the viewer"
+    # Spanish second person: the pronouns, or the person is in the verb
+    # ("pagas", "pierdes", "tienes"). Only common verbs, to avoid matching
+    # every plural noun that ends in -as or -es.
+    if (set(w) & ES_YOU) or (set(w) & ES_YOU_VERBS):
         return 100.0, "speaks to the viewer"
     if w and w[0] in IMPERATIVES:
         return 90.0, f"imperative opener (\"{w[0]}\")"
+    if set(w) & ES_ME:
+        return 70.0, "first person, no viewer named"
     if re.search(r"\b(i|my|me|we|our)\b", low):
         return 70.0, "first person, no viewer named"
     return 35.0, "third person, nobody in the room"
+
+
+ES_YOU = {"tu", "tus", "te", "ti", "contigo", "usted", "ustedes", "vosotros",
+          "vosotras", "os", "vuestro", "vuestra", "tuyo", "tuya"}
+ES_YOU_VERBS = {
+    "eres", "estas", "tienes", "pagas", "pierdes", "gastas", "ahorras",
+    "puedes", "quieres", "sabes", "haces", "vives", "usas", "necesitas",
+    "crees", "piensas", "miras", "llevas", "cobras", "debes", "deberias",
+    "contrataste", "pagaste", "perdiste", "hiciste", "tendras", "vas",
+    "sigues", "tiras", "regalas", "consumes", "enciendes", "notas", "ves",
+}
+ES_ME = {"yo", "mi", "mis", "me", "conmigo", "nosotros", "nosotras", "nos",
+         "nuestro", "nuestra", "nuestros", "nuestras"}
 
 
 CHECKS = ["LENGTH", "SPECIFICITY", "STAKES", "FRONTLOAD", "ADDRESS"]
