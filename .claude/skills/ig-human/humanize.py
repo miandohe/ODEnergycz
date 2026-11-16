@@ -151,6 +151,10 @@ def pass_lexical(text, lex):
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)      # an em dash became a comma,
                                                       # then the clause after it went
+    # A sentence-opening connective was deleted ("En definitiva, X"), leaving
+    # "previous., x". Close the sentence and capitalise the next one.
+    text = re.sub(r"([.!?])\s*,\s*(\w)",
+                  lambda m: m.group(1) + " " + m.group(2).upper(), text)
     text = text.replace("...", "\x00ELL\x00")          # protect real ellipses
     text = re.sub(r"\.\s*\.+", ".", text)
     text = re.sub(r"([!?])\s*\.", r"\1", text)

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "note": "Lexicon used by humanize.py and detect.py. Replacements are plain-English and keep the sentence grammatical. The last block of each list is Instagram-specific: caption and voiceover slop that does not show up on other platforms. Edit freely - it is meant to be yours.",
+  "note": "Lexicon used by humanize.py and detect.py. Replacements are plain-English and keep the sentence grammatical. The last block of each list is Instagram-specific: caption and voiceover slop that does not show up on other platforms. Edit freely - it is meant to be yours. Spanish entries (family \"es\") added for Spanish drafts.",
   "invisible": [
     {
       "cp": "U+200B",
@@ -630,6 +630,106 @@
       "find": "hack",
       "replace": "trick",
       "family": "nouns"
+    },
+    {
+      "find": "desbloquear",
+      "replace": "conseguir",
+      "family": "es"
+    },
+    {
+      "find": "desbloquea",
+      "replace": "consigue",
+      "family": "es"
+    },
+    {
+      "find": "potenciar",
+      "replace": "mejorar",
+      "family": "es"
+    },
+    {
+      "find": "fomentar",
+      "replace": "ayudar a",
+      "family": "es"
+    },
+    {
+      "find": "fundamental",
+      "replace": "clave",
+      "family": "es"
+    },
+    {
+      "find": "primordial",
+      "replace": "clave",
+      "family": "es"
+    },
+    {
+      "find": "panorama",
+      "replace": "situación",
+      "family": "es"
+    },
+    {
+      "find": "ecosistema",
+      "replace": "mundo",
+      "family": "es"
+    },
+    {
+      "find": "sinergia",
+      "replace": "colaboración",
+      "family": "es"
+    },
+    {
+      "find": "holístico",
+      "replace": "completo",
+      "family": "es"
+    },
+    {
+      "find": "robusto",
+      "replace": "sólido",
+      "family": "es"
+    },
+    {
+      "find": "vibrante",
+      "replace": "animado",
+      "family": "es"
+    },
+    {
+      "find": "apasionante",
+      "replace": "interesante",
+      "family": "es"
+    },
+    {
+      "find": "transformador",
+      "replace": "que cambia las cosas",
+      "family": "es"
+    },
+    {
+      "find": "revolucionario",
+      "replace": "nuevo",
+      "family": "es"
+    },
+    {
+      "find": "innovador",
+      "replace": "nuevo",
+      "family": "es"
+    },
+    {
+      "find": "optimizar",
+      "replace": "mejorar",
+      "family": "es"
+    },
+    {
+      "find": "maximizar",
+      "replace": "subir",
+      "family": "es"
+    },
+    {
+      "find": "elevar",
+      "replace": "subir",
+      "family": "es"
+    },
+    {
+      "find": "asimismo",
+      "replace": "también",
+      "family": "es"
     }
   ],
   "phrases": [
@@ -922,6 +1022,166 @@
       "find": "go viral overnight",
       "replace": "get reach",
       "family": "nouns"
+    },
+    {
+      "find": "sumérgete en",
+      "replace": "mira",
+      "family": "es"
+    },
+    {
+      "find": "sumergirnos en",
+      "replace": "ver",
+      "family": "es"
+    },
+    {
+      "find": "adentrarnos en",
+      "replace": "ver",
+      "family": "es"
+    },
+    {
+      "find": "adéntrate en",
+      "replace": "mira",
+      "family": "es"
+    },
+    {
+      "find": "potencia tu",
+      "replace": "mejora tu",
+      "family": "es"
+    },
+    {
+      "find": "aprovechar al máximo",
+      "replace": "sacar partido a",
+      "family": "es"
+    },
+    {
+      "find": "eleva tu",
+      "replace": "sube tu",
+      "family": "es"
+    },
+    {
+      "find": "navegar por",
+      "replace": "moverte por",
+      "family": "es"
+    },
+    {
+      "find": "un sinfín de",
+      "replace": "muchos",
+      "family": "es"
+    },
+    {
+      "find": "una amplia gama de",
+      "replace": "muchos",
+      "family": "es"
+    },
+    {
+      "find": "sin lugar a dudas",
+      "replace": "seguro",
+      "family": "es"
+    },
+    {
+      "find": "cabe destacar que",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "es importante destacar que",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "es importante tener en cuenta que",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "vale la pena mencionar que",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "en definitiva",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "en resumen",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "en conclusión",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "dicho esto",
+      "replace": "",
+      "family": "es"
+    },
+    {
+      "find": "por otro lado",
+      "replace": "además",
+      "family": "es"
+    },
+    {
+      "find": "no obstante",
+      "replace": "pero",
+      "family": "es"
+    },
+    {
+      "find": "en el mundo actual",
+      "replace": "hoy",
+      "family": "es"
+    },
+    {
+      "find": "en la era digital",
+      "replace": "hoy",
+      "family": "es"
+    },
+    {
+      "find": "en el vertiginoso mundo de",
+      "replace": "en",
+      "family": "es"
+    },
+    {
+      "find": "en un mundo donde",
+      "replace": "hoy",
+      "family": "es"
+    },
+    {
+      "find": "a la hora de",
+      "replace": "al",
+      "family": "es"
+    },
+    {
+      "find": "juega un papel clave",
+      "replace": "importa",
+      "family": "es"
+    },
+    {
+      "find": "juega un papel crucial",
+      "replace": "importa",
+      "family": "es"
+    },
+    {
+      "find": "juega un papel fundamental",
+      "replace": "importa",
+      "family": "es"
+    },
+    {
+      "find": "un viaje",
+      "replace": "un proceso",
+      "family": "es"
+    },
+    {
+      "find": "el secreto mejor guardado",
+      "replace": "lo que poca gente sabe",
+      "family": "es"
+    },
+    {
+      "find": "descubre cómo",
+      "replace": "así es como",
+      "family": "es"
     }
   ],
   "structures": [
@@ -1020,6 +1280,30 @@
       "regex": "(?i)\\b(?:follow for more|tag someone who|double tap if|share this if|comment below if)\\b",
       "name": "Reflex follow or tag bait",
       "fix": "Ask for the one action this post actually earns. The generic ask trains the audience to ignore every ask."
+    },
+    {
+      "id": "es-no-solo",
+      "regex": "(?i)\\bno (?:solo|sólo|solamente) [^.!?\\n]{2,80}\\bsino (?:también|que)\\b",
+      "name": "\"No solo X, sino también Y\"",
+      "fix": "Di la única cosa que importa. Borra la mitad de relleno."
+    },
+    {
+      "id": "es-no-es-x-es-y",
+      "regex": "(?i)\\bno es (?:solo |sólo )?[^.!?\\n]{2,50}[,.] es\\b",
+      "name": "\"No es X, es Y\"",
+      "fix": "Di lo que es directamente."
+    },
+    {
+      "id": "es-y-lo-mejor",
+      "regex": "(?i)\\b(?:y lo mejor de todo|pero eso no es todo|y aquí viene lo bueno)\\b",
+      "name": "\"Y lo mejor de todo...\"",
+      "fix": "Pon lo mejor primero y borra el anuncio."
+    },
+    {
+      "id": "es-pregunta-retorica",
+      "regex": "(?im)^¿(?:alguna vez te has preguntado|sabías que|te imaginas)\\b",
+      "name": "Pregunta retórica de apertura",
+      "fix": "Empieza con la respuesta, no con la pregunta."
     }
   ]
 }

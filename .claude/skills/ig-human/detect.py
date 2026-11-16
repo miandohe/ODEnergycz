@@ -33,11 +33,34 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LEX = os.path.join(HERE, "slop.json")
 
 SENT_RE = re.compile(r"[^.!?\n]+[.!?]*")
-WORD_RE = re.compile(r"[A-Za-z']+")
+WORD_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ']+")
 CONTRACTIONS = re.compile(r"\b\w+'(?:s|t|re|ve|ll|d|m)\b", re.IGNORECASE)
 PRONOUNS = re.compile(r"\b(i|me|my|mine|we|us|our|you|your)\b", re.IGNORECASE)
-NUMBERS = re.compile(r"\b\d[\d,.]*%?\b|\$\d")
-PROPER = re.compile(r"(?<![.!?]\s)(?<!^)\b[A-Z][a-z]{2,}\b", re.MULTILINE)
+NUMBERS = re.compile(r"\b\d[\d,.]*%?\b|[$€]\d")
+PROPER = re.compile(r"(?<![.!?]\s)(?<!^)\b[A-ZÁÉÍÓÚÑ][a-záéíóúüñ]{2,}\b", re.MULTILINE)
+
+# Spanish. It has no informal contractions ("al" and "del" are compulsory),
+# so the VOICE check looks for spoken discourse markers instead, and counts
+# Spanish pronouns, clitics included, since the person is often in the verb.
+ES_FUNCTION = {"el", "la", "los", "las", "de", "del", "que", "y", "en", "un",
+               "una", "es", "por", "con", "para", "lo", "se", "no", "su", "al",
+               "pero", "más", "mas", "como", "muy", "también", "porque"}
+ES_PRONOUNS = re.compile(
+    r"\b(yo|me|mi|mis|conmigo|nosotros|nosotras|nos|nuestro|nuestra|nuestros|"
+    r"nuestras|tú|tu|tus|te|ti|contigo|usted|ustedes|vosotros|vosotras|os|"
+    r"vuestro|vuestra)\b", re.IGNORECASE)
+ES_SPOKEN = re.compile(
+    r"\b(ojo|vale|pues|mira|mirad|oye|venga|bueno|vamos|anda|total|tío|tía|"
+    r"hombre|o sea|en plan|fíjate|madre mía|ya está|a ver|eh|vaya|claro|"
+    r"la verdad)\b|¿\s*(?:no|vale|eh|verdad)\s*\?", re.IGNORECASE)
+
+
+def is_spanish(text):
+    w = [x.lower() for x in WORD_RE.findall(text)]
+    if len(w) < 8:
+        return bool(re.search(r"[ñ¿¡áéíóú]", text, re.IGNORECASE))
+    return sum(x in ES_FUNCTION for x in w) / len(w) > 0.12 and \
+        sum(x in {"the", "and", "of", "to", "is", "you"} for x in w) / len(w) < 0.04
 
 
 def clamp(n):
@@ -124,8 +147,15 @@ def check_voice(text, lex):
     if len(w) < 25:
         return 50.0, "too short to judge"
     per100 = 100 / len(w)
-    contractions = len(CONTRACTIONS.findall(text)) * per100
-    person = len(PRONOUNS.findall(text)) * per100
+    spanish = is_spanish(text)
+    if spanish:
+        contractions = len(ES_SPOKEN.findall(text)) * per100
+        person = len(ES_PRONOUNS.findall(text)) * per100
+        c_human, p_human, c_label = 2.0, 6.0, "spoken markers"
+    else:
+        contractions = len(CONTRACTIONS.findall(text)) * per100
+        person = len(PRONOUNS.findall(text)) * per100
+        c_human, p_human, c_label = 3.0, 8.0, "contractions"
     tells = 0
     names = []
     for s in lex["structures"]:
@@ -138,14 +168,14 @@ def check_voice(text, lex):
             names.append(s["id"])
     bullets = [len(b.split()) for b in re.findall(r"(?m)^\s*[-*•]\s+(.+)$", text)]
     uniform = (len(bullets) >= 3 and statistics.pstdev(bullets) < 1.6)
-    score = (scale(contractions, human=3.0, machine=0.0) * 0.35
-             + scale(person, human=8.0, machine=1.0) * 0.35
+    score = (scale(contractions, human=c_human, machine=0.0) * 0.35
+             + scale(person, human=p_human, machine=1.0) * 0.35
              + clamp(100 - tells * 22) * 0.30)
     if uniform:
         score -= 12
         names.append("uniform-bullets")
-    detail = (f"{contractions:.1f} contractions, {person:.1f} personal pronouns "
-              f"per 100 words, {tells} structural tell(s)")
+    detail = (f"{contractions:.1f} {c_label}, {person:.1f} personal pronouns "
+              f"per 100 words, {tells} structural tell(s)" + (" [es]" if spanish else ""))
     if names:
         detail += " [" + ", ".join(names[:4]) + "]"
     return clamp(score), detail
